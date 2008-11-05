@@ -1,5 +1,7 @@
 #!/usr/bin/python
 #
+# ibuddy daemon - http://code.google.com/p/pybuddy
+#
 # Most of the code comes from http://cuntography.com/blog/?p=17
 # Jose.Carlos.Luna@gmail.com
 #
@@ -9,12 +11,13 @@ import time
 import sys
 import socket
 import os
+import pwd
+from ConfigParser import RawConfigParser
+
 
 ################
 #Configuration
 ################
-host = '127.0.0.1'
-port = 8888
 tsleep = 0.1
 BUDDY_PRODUCT = 0x2 #Change to your i-buddy type
 
@@ -34,9 +37,9 @@ class BuddyDevice:
 
   finalMess = 0xFF
 
-  def __init__(self, battery):
+  def __init__(self, battery, buddy_product):
     try:
-      self.dev=UsbDevice(0x1130, BUDDY_PRODUCT, battery)
+      self.dev=UsbDevice(0x1130, buddy_product, battery)
       self.dev.open()
       self.dev.handle.reset()
       self.resetMessage()
@@ -326,15 +329,30 @@ def decode_buddy (buddy,msg):
 # MAIN program
 #######################################
 
+config = RawConfigParser({'port': 8888,
+                          'address': '127.0.0.1',
+                          'user': 'nobody',
+                          'usbproduct': 0002,
+                          })
+config._sections = {'network':{}, 'system':{}}
 
+config_files = ["~/.pybuddy.cfg", "/etc/pybuddy/pybuddy.cfg", "/usr/local/etc/pybuddy.cfg"]
+if len(sys.argv) > 1:
+    config_files.append(sys.argv[1])
+    
+config_read = config.read(config_files)
+
+if config_read:
+    sys.stderr.write("Read config file: " + config_read[0] + "\n")
+    
 sys.stderr.write("Starting search...")
 try:
-    buddy=BuddyDevice(0)
+    buddy=BuddyDevice(0, int(config.get("system", "usbproduct")))
 except NoBuddyException, e:
     sys.stderr.write("Not found!")
 
 
-sys.stderr.write("Starting daemon...")
+sys.stderr.write("Starting daemon...\n")
 if os.fork()==0:
     os.setsid()
 else:
@@ -344,15 +362,20 @@ else:
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind((host, port))
-os.setuid(65534)
+s.bind((config.get("network", "address"), int(config.get("network", "port"))))
+
+try:
+    uid = pwd.getpwnam(config.get("system", "user"))[2]
+except KeyError:
+    sys.stderr.write("Username ", config.get("system", "user") + " not found\n")
+os.setuid(uid)
 
 
 while 1:
     try:
         message, address = s.recvfrom(8192)
         print "Got data from", address
-        decode_buddy(buddy,message)
+        decode_buddy(buddy, message)
 
     except (KeyboardInterrupt, SystemExit):
         raise
