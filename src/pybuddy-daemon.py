@@ -1,10 +1,12 @@
 #!/usr/bin/python
 #
-# ibuddy daemon - http://code.google.com/p/pybuddy
+# pybuddy
+# python ibuddy daemon - http://code.google.com/p/pybuddy
+#
+# Jose.Carlos.Luna@gmail.com
+# luis.peralta@gmail.com
 #
 # Most of the code comes from http://cuntography.com/blog/?p=17
-# Jose.Carlos.Luna@gmail.com
-#
 
 import usb
 import time
@@ -19,7 +21,7 @@ from ConfigParser import RawConfigParser
 #Configuration
 ################
 tsleep = 0.1
-BUDDY_PRODUCT = 0x2 #Change to your i-buddy type
+
 
 ################
 # IBUDDY class
