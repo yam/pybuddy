@@ -7,6 +7,7 @@
 # luis.peralta@gmail.com
 #
 # Most of the code comes from http://cuntography.com/blog/?p=17
+# Which is based on http://scott.weston.id.au/software/pymissile/
 
 import usb
 import time
