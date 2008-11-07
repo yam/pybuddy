@@ -231,7 +231,7 @@ def macro_heart2(buddy):
     time.sleep(tsleep)
 
 def macro_demo(buddy,num=1):
-    for i in range(num)
+    for i in range(num):
         buddy.setHeadColor(1,0,0);
         buddy.flick(buddy.LEFT)
         buddy.wing(buddy.DOWN)
@@ -366,7 +366,7 @@ def decode_buddy (buddy,msg):
 config = RawConfigParser({'port': 8888,
                           'address': '127.0.0.1',
                           'user': 'nobody',
-                          'usbproduct': 0001,
+                          'usbproduct': 0002,
                           })
 config._sections = {'network':{}, 'system':{}}
 
@@ -384,6 +384,7 @@ try:
     buddy=BuddyDevice(0, int(config.get("system", "usbproduct")))
 except NoBuddyException, e:
     sys.stderr.write("Not found!")
+    sys.exit(1)
 
 
 sys.stderr.write("Starting daemon...\n")
