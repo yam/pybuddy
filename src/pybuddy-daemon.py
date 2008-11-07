@@ -196,13 +196,13 @@ def macro_move_flap(buddy):
 def macro_flap (buddy,heart=0):
     for i in range(2):
         buddy.resetMessage()
-        buddy.wing(self.UP)
+        buddy.wing(buddy.UP)
         if heart:
             buddy.setHeart(1)
         buddy.pumpMessage()
         time.sleep(0.1)
         buddy.resetMessage()
-        buddy.wing(self.DOWN)
+        buddy.wing(buddy.DOWN)
         buddy.pumpMessage()
         time.sleep(0.1)
 
