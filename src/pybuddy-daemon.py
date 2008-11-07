@@ -230,6 +230,39 @@ def macro_heart2(buddy):
     buddy.pumpMessage()
     time.sleep(tsleep)
 
+def macro_demo(buddy,num=1):
+    for i in range(num)
+        buddy.setHeadColor(1,0,0);
+        buddy.flick(buddy.LEFT)
+        buddy.wing(buddy.DOWN)
+        buddy.pumpMessage()
+        time.sleep(tsleep*2)
+        buddy.setHeadColor(0,1,0);
+        buddy.setHeart(1)
+        buddy.flick(buddy.RIGHT)
+        buddy.wing(buddy.UP)
+        buddy.pumpMessage()
+        time.sleep(tsleep*2)
+        buddy.setHeadColor(0,0,1);
+        buddy.flick(buddy.LEFT)
+        buddy.wing(buddy.DOWN)
+        buddy.setHeart(0)
+        buddy.pumpMessage()
+        time.sleep(tsleep*2)
+        buddy.setHeadColor(1,0,1);
+        buddy.flick(buddy.RIGHT)
+        buddy.wing(buddy.UP)
+        buddy.setHeart(1)
+        buddy.pumpMessage()
+        time.sleep(tsleep*2)
+        buddy.setHeadColor(1,1,1);
+        buddy.flick(buddy.LEFT)
+        buddy.wing(buddy.DOWN)
+        buddy.setHeart(0)
+        buddy.pumpMessage()
+        buddy.resetMessage()
+        buddy.pumpMessage()
+
 def do_color(buddy,red,green,blue):
     r,g,b = buddy.getColors()
     try:
@@ -323,6 +356,8 @@ def decode_buddy (buddy,msg):
             macro_heart(buddy)
         if cod[0] == 'MACRO_HEART2':
             macro_heart2(buddy)
+        if cod[0] == 'DEMO':
+            macro_demo(buddy)
 
 #######################################
 # MAIN program
