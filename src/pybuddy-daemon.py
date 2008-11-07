@@ -50,65 +50,67 @@ class BuddyDevice:
     except NoBuddyException, e:
       raise NoBuddyException()
       
+# Commands are sent as disabled bits
+  def setReverseBitValue(self,num,value):
+     if(value!=0):
+         value=0
+     else:
+         value=1
+
+     if (value==0):
+         temp = 0xFF - 2**num
+         self.finalMess = self.finalMess & temp
+     else:
+         temp = value << num
+         self.finalMess = self.finalMess | temp
+
+  def getReverseBitValue(self,num):
+     temp = self.finalMess
+     temp = temp >> num
+     res = not(temp&1)
+     return res
+
   def setHeadColor(self, red, green, blue):
-    re = red << 4
-    gr = green << 5
-    bl = blue << 6
-    tmp = re | gr | bl
-    self.finalMess = self.finalMess ^ tmp
+    self.setReverseBitValue(4,red)
+    self.setReverseBitValue(5,green)
+    self.setReverseBitValue(6,blue)
 
   def setHeart(self, status):
-    st = status << 7
-    self.finalMess = self.finalMess ^ st
-    
+    self.setReverseBitValue(7,status)
+
   def pumpMessage(self):
      self.send(self.finalMess)
-    
+
   def resetMessage(self):
      self.finalMess = 0xFF
-    
+
   def flick(self, direction):
-     di = 0
      if (direction == self.RIGHT):
-        di = 2
+        self.setReverseBitValue(1,1)
+        self.setReverseBitValue(0,0)
      elif(direction == self.LEFT):
-        di = 1
-     self.finalMess = self.finalMess ^ di   
-     
+        self.setReverseBitValue(1,0)
+        self.setReverseBitValue(0,1)
+
   def wing(self, direction):
-     b = 1
      if (direction == self.UP):
-        b = b << 3
+        self.setReverseBitValue(3,1)
+        self.setReverseBitValue(2,0)
      elif(direction == self.DOWN):
-        b = b << 2
-     self.finalMess = self.finalMess ^ b
+        self.setReverseBitValue(3,0)
+        self.setReverseBitValue(2,1)
 
   def getColors (self):
-     temp = self.finalMess
-     temp = temp >> 4
-     re = not(temp&1)
-     temp = temp >> 1
-     gr = not(temp&1)
-     temp = temp >> 1
-     bl = not(temp&1)
-     return re,gr,bl
+     return self.getReverseBitValue(4), self.getReverseBitValue(5), self.getReverseBitValue(6)
 
-#  def getHeart(self):
-#     temp = self.finalMess
-#     temp = temp >> 7
-#     he = not(temp&1)
-#     return he
+  def getHeart(self):
+     return self.getReverseBitValue(7)
 
-#  def getWing(self):
-#     temp = self.finalMess
-#     temp = temp >> 3
-#     he = not(temp&1)
-#     return he
+  def getWing(self):
+     return self.getReverseBitValue(2)
 
-#  def getDirection(self):
-#     temp = self.finalMess
-#     dr = not(temp&1)
-#     return dr
+  def getDirection(self):
+     return self.getReverseBitValue(1)
 
   def send(self, inp):
     self.dev.handle.controlMsg(0x21, 0x09, self.SETUP, 0x02, 0x01)
@@ -240,21 +242,15 @@ def do_color(buddy,red,green,blue):
          param3=0
 
     if(param1==-1):
-        param1=0
-    else:
-        param1=r^param1
+        param1=r
+
     if(param2==-1):
-        param2=0
-    else:
-        param2=g^param2
+        param2=g
+
     if(param3==-1):
-        param3=0
-    else:
-        param3=b^param3
+        param3=b
 
     buddy.setHeadColor(param1,param2,param3)
-
-
 
 def decode_buddy (buddy,msg):
     orders = msg.split("\n") 
@@ -335,7 +331,7 @@ def decode_buddy (buddy,msg):
 config = RawConfigParser({'port': 8888,
                           'address': '127.0.0.1',
                           'user': 'nobody',
-                          'usbproduct': 0002,
+                          'usbproduct': 0001,
                           })
 config._sections = {'network':{}, 'system':{}}
 
