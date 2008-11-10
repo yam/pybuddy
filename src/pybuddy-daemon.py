@@ -167,101 +167,52 @@ class NoBuddyException(Exception): pass
 # Decoding macros
 ##########################################
 
-def macro_color (buddy,red,green,blue):
-    buddy.setHeadColor(red,green,blue)
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.resetMessage()
-    buddy.pumpMessage()
-    buddy.pumpMessage()
+def macro_color (red,green,blue):
+    message = "C:%d:%d:%d" % (red,green,blue)
+    message += "\nX\nS\nZ\nZ\n"
+    return message
 
-def macro_heart (buddy,heart):
-    buddy.setHeart(1)
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.resetMessage()
-    buddy.pumpMessage()
-    buddy.pumpMessage()
+def macro_heart ():
+    message = "H:1" 
+    message += "\nX\nS\nZ\nZ\n"
+    return message
 
-def macro_move_flap(buddy):
-    buddy.flick(buddy.LEFT)
-    buddy.pumpMessage()
-    time.sleep(0.2)
-    buddy.flick(buddy.RIGHT)
-    buddy.pumpMessage()
-    time.sleep(0.2)
-    buddy.flick(buddy.LEFT)
-    buddy.pumpMessage()
-    time.sleep(0.2)
-    macro_flap(buddy)
+def macro_move_flap():
+    message  = "ML\nX\nS\nS\n"
+    message += "MR\nX\nS\nS\n"
+    message += "ML\nX\nS\nS\n"
+    return message + macro_flap()
 
-def macro_flap (buddy,heart=0):
+def macro_flap (heart=0):
+    message = ""
     for i in range(2):
-        buddy.resetMessage()
-        buddy.wing(buddy.UP)
+        message += "L\n"
+        message += "WU\n"
         if heart:
-            buddy.setHeart(1)
-        buddy.pumpMessage()
-        time.sleep(0.1)
-        buddy.resetMessage()
-        buddy.wing(buddy.DOWN)
-        buddy.pumpMessage()
-        time.sleep(0.1)
+            message += "H:1\n"
+        message += "X\nS\nL\n"
+        message += "WD\nX\nS\n"
+    return message
 
-def macro_heart (buddy):
-    buddy.setHeart(1)
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.resetMessage()
-    buddy.pumpMessage()
-    time.sleep(tsleep)
+def macro_heart2():
+    message = "H:1\nX\nS\n"
+    message += "Z\nS\n"
+    message += "H:1\nX\nS\n"
+    message += "Z\nS\n\nZ\nZ\n"
+    return message
 
-def macro_heart2(buddy):
-    buddy.setHeart(1)
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.resetMessage()
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.setHeart(1)
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-    buddy.resetMessage()
-    buddy.pumpMessage()
-    time.sleep(tsleep)
-
-def macro_demo(buddy,num=1):
+def macro_demo(num=1):
+    message = ""
     for i in range(num):
-        buddy.setHeadColor(1,0,0);
-        buddy.flick(buddy.LEFT)
-        buddy.wing(buddy.DOWN)
-        buddy.pumpMessage()
-        time.sleep(tsleep*2)
-        buddy.setHeadColor(0,1,0);
-        buddy.setHeart(1)
-        buddy.flick(buddy.RIGHT)
-        buddy.wing(buddy.UP)
-        buddy.pumpMessage()
-        time.sleep(tsleep*2)
-        buddy.setHeadColor(0,0,1);
-        buddy.flick(buddy.LEFT)
-        buddy.wing(buddy.DOWN)
-        buddy.setHeart(0)
-        buddy.pumpMessage()
-        time.sleep(tsleep*2)
-        buddy.setHeadColor(1,0,1);
-        buddy.flick(buddy.RIGHT)
-        buddy.wing(buddy.UP)
-        buddy.setHeart(1)
-        buddy.pumpMessage()
-        time.sleep(tsleep*2)
-        buddy.setHeadColor(1,1,1);
-        buddy.flick(buddy.LEFT)
-        buddy.wing(buddy.DOWN)
-        buddy.setHeart(0)
-        buddy.pumpMessage()
-        buddy.resetMessage()
-        buddy.pumpMessage()
+        message += "C:1:0:0\nH:0\nML\nWD\nX\nS\nS\n"
+        message += "C:0:1:0\nH:1\nMR\nWU\nX\nS\nS\n"
+        message += "C:0:0:1\nH:0\nML\nWD\nX\nS\nS\n"
+        message += "C:1:0:1\nH:1\nMR\nWU\nX\nS\nS\n"
+        message += "C:1:1:0\nH:0\nML\nWD\nX\nS\nS\n"
+        message += "C:0:1:1\nH:1\nMR\nWU\nX\nS\nS\n"
+        message += "C:1:1:1\nH:0\nML\nWD\nX\nS\nS\n"
+        message += "Z\nZ\n"
+    return message
 
 def do_color(buddy,red,green,blue):
     r,g,b = buddy.getColors()
@@ -285,18 +236,20 @@ def do_color(buddy,red,green,blue):
 
     buddy.setHeadColor(param1,param2,param3)
 
+
+
 def decode_buddy (buddy,msg):
     orders = msg.split("\n") 
     for str in (orders): 
         cod = str.split(":")
         param=0
-        if cod[0] == 'RED':
+        if cod[0] == 'RED' or cod[0]=='R':
             try: do_color(buddy,cod[1],-1,-1)
             except: pass
-        if cod[0] == 'GREEN':
+        if cod[0] == 'GREEN' or cod[0]=='G':
             try: do_color(buddy,-1,cod[1],-1)
             except: pass
-        if cod[0] == 'BLUE':
+        if cod[0] == 'BLUE' or cod[0]=='B':
             try: do_color(buddy,-1,-1,cod[1])
             except: pass
         if cod[0] == 'YELLOW':
@@ -308,7 +261,7 @@ def decode_buddy (buddy,msg):
         if cod[0] == 'VIOLET':
             try: do_color(buddy,cod[1],-1,cod[1])
             except: pass
-        if cod[0] == 'HEART':
+        if cod[0] == 'HEART' or cod[0]=='H':
             try:
                 param=int(cod[1])
             except:
@@ -321,43 +274,43 @@ def decode_buddy (buddy,msg):
             buddy.flick(buddy.RIGHT)
         if cod[0] == 'ML':
             buddy.flick(buddy.LEFT)
-        if cod[0] == 'SLEEP':
+        if cod[0] == 'SLEEP' or cod[0]=='S':
             time.sleep(0.1)
         if cod[0] == 'WU':
             buddy.wing(buddy.UP)
         if cod[0]== 'WD':
             buddy.wing(buddy.DOWN)
-        if cod[0]== 'EXEC':
+        if cod[0]== 'EXEC' or cod[0]=='X':
             buddy.pumpMessage()
-        if cod[0] == 'CLEAR':
+        if cod[0] == 'CLEAR' or cod[0]=='L':
             buddy.resetMessage()
-        if cod[0]== 'RESET':
+        if cod[0]== 'RESET' or cod[0]=='Z':
             buddy.resetMessage()
             buddy.pumpMessage()
         if cod[0] == 'MACRO_FLAP':
-            macro_move_flap(buddy)
+            decode_buddy(buddy,macro_move_flap())
         if cod[0] == 'MACRO_FLAP2':
-            macro_flap(buddy)
+            decode_buddy(buddy,macro_flap())
         if cod[0] == 'MACRO_RED':
-            macro_color(buddy,1,0,0)
+            decode_buddy(buddy,macro_color(1,0,0))
         if cod[0] == 'MACRO_GREEN':
-            macro_color(buddy,0,1,0)
+            decode_buddy(buddy,macro_color(0,1,0))
         if cod[0] == 'MACRO_BLUE':
-            macro_color(buddy,0,0,1)
+            decode_buddy(buddy,macro_color(0,0,1))
         if cod[0] == 'MACRO_YELLOW':
-            macro_color(buddy,1,1,0)
+            decode_buddy(buddy,macro_color(1,1,0))
         if cod[0] == 'MACRO_VIOLET':
-            macro_color(buddy,1,0,1)
+            decode_buddy(buddy,macro_color(1,0,1))
         if cod[0] == 'MACRO_SAPHIRE':
-            macro_color(buddy,0,1,1)
+            decode_buddy(buddy,macro_color(0,1,1))
         if cod[0] == 'MACRO_LBLUE':
-            macro_color(buddy,1,1,1)
+            decode_buddy(buddy,macro_color(1,1,1))
         if cod[0] == 'MACRO_HEART':
-            macro_heart(buddy)
+            decode_buddy(buddy,macro_heart())
         if cod[0] == 'MACRO_HEART2':
-            macro_heart2(buddy)
+            decode_buddy(buddy,macro_heart2())
         if cod[0] == 'DEMO':
-            macro_demo(buddy)
+            decode_buddy(buddy,macro_demo())
 
 #######################################
 # MAIN program
