@@ -15,6 +15,7 @@ import sys
 import socket
 import os
 import pwd
+import logging
 from ConfigParser import RawConfigParser
 
 
@@ -131,7 +132,7 @@ class UsbDevice:
 
         if dev.idVendor==vendor_id and dev.idProduct==product_id:
           if count==skip:
-            sys.stderr.write("vend :%s   prod: %s\n" % (dev.idVendor, dev.idProduct))
+            log.info("ibuddy found! vend: %s   prod: %s",dev.idVendor, dev.idProduct)
             self.dev = dev
             
             self.conf = self.dev.configurations[0]
@@ -139,7 +140,7 @@ class UsbDevice:
             self.endpoints = []
             for endpoint in self.intf.endpoints:
               self.endpoints.append(endpoint)
-              sys.stderr.write("endpoint\n")
+              log.info("endpoint")
             return
           else:
             count=count+1
@@ -316,9 +317,14 @@ def decode_buddy (buddy,msg):
 # MAIN program
 #######################################
 
+log = logging.getLogger('pybuddy')
+
+
 config = RawConfigParser({'port': 8888,
                           'address': '127.0.0.1',
                           'user': 'nobody',
+			  'loglevel': 'info',
+			  'logfile': 'console',
                           'usbproduct': 0002,
                           })
 config._sections = {'network':{}, 'system':{}}
@@ -329,18 +335,34 @@ if len(sys.argv) > 1:
     
 config_read = config.read(config_files)
 
+if config.get("system", "logfile") == "console":
+    logging.basicConfig(stream=sys.stderr,
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        )
+elif config.get("system", "logfile") == "console":
+    logging.basicConfig(filename=config.get("system", "logfile"),
+                        format='%(asctime)s %(levelname)-8s %(message)s',
+                        )
+
+if config.get("system", "loglevel") == "debug":
+    log.setLevel(logging.DEBUG)
+elif config.get("system", "loglevel") == "info":
+    log.setLevel(logging.INFO)
+
+
+
 if config_read:
-    sys.stderr.write("Read config file: " + config_read[0] + "\n")
+    log.info("Read config file: %s", config_read[0])
     
-sys.stderr.write("Starting search...")
+log.info("Starting search...")
 try:
     buddy=BuddyDevice(0, int(config.get("system", "usbproduct")))
 except NoBuddyException, e:
-    sys.stderr.write("Not found!")
+    log.error("Not found!")
     sys.exit(1)
 
 
-sys.stderr.write("Starting daemon...\n")
+log.info("Starting daemon...")
 if os.fork()==0:
     os.setsid()
 else:
@@ -355,14 +377,15 @@ s.bind((config.get("network", "address"), int(config.get("network", "port"))))
 try:
     uid = pwd.getpwnam(config.get("system", "user"))[2]
 except KeyError:
-    sys.stderr.write("Username ", config.get("system", "user") + " not found\n")
+    log.error("Username %s not found, exiting...", config.get("system", "user"))
+    sys.exit(1)
 os.setuid(uid)
 
 
 while 1:
     try:
         message, address = s.recvfrom(8192)
-        print "Got data from", address
+        log.debug("Got data from %s", address)
         decode_buddy(buddy, message)
 
     except (KeyboardInterrupt, SystemExit):
