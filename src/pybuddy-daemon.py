@@ -367,8 +367,6 @@ if os.fork()==0:
     os.setsid()
 else:
     sys.exit(0)
-#    sys.stdout=open("/dev/null", 'w')
-#    sys.stdin=open("/dev/null", 'r')
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
