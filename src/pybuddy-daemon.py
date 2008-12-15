@@ -335,12 +335,12 @@ if len(sys.argv) > 1:
     
 config_read = config.read(config_files)
 
-if config.get("system", "logfile") == "console":
-    logging.basicConfig(stream=sys.stderr,
+if config.get("system", "logfile") != "console":
+    logging.basicConfig(filename=config.get("system", "logfile"),
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         )
-elif config.get("system", "logfile") == "console":
-    logging.basicConfig(filename=config.get("system", "logfile"),
+else:
+    logging.basicConfig(stream=sys.stderr,
                         format='%(asctime)s %(levelname)-8s %(message)s',
                         )
 
