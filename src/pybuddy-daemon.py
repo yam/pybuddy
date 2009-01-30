@@ -321,8 +321,8 @@ config = RawConfigParser(
             { 'port': 8888,
               'address': '127.0.0.1',
               'user': 'nobody',
-			  'loglevel': 'info',
-			  'logfile': 'console',
+              'loglevel': 'info',
+              'logfile': 'console',
               'usbproduct': 0002,
              }
 )
