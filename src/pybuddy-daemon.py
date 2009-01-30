@@ -59,7 +59,7 @@ class BuddyDevice:
          value=1
 
      if (value==0):
-         temp = 0xFF - 2**num
+         temp = 0xFF - (1<<num)
          self.finalMess = self.finalMess & temp
      else:
          temp = value << num
