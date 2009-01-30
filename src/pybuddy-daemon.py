@@ -53,16 +53,11 @@ class BuddyDevice:
       
 # Commands are sent as disabled bits
   def setReverseBitValue(self,num,value):
-     if(value!=0):
-         value=0
-     else:
-         value=1
-
-     if (value==0):
+     if (value==1):
          temp = 0xFF - (1<<num)
          self.finalMess = self.finalMess & temp
-     else:
-         temp = value << num
+     elif (value==0):
+         temp = 1 << num
          self.finalMess = self.finalMess | temp
 
   def getReverseBitValue(self,num):
@@ -222,9 +217,9 @@ def do_color(buddy,red,green,blue):
          param2=int(green)
          param3=int(blue)
     except:
-         param1=0
-         param2=0
-         param3=0
+         param1=-1
+         param2=-1
+         param3=-1
 
     if(param1==-1):
         param1=r
@@ -247,70 +242,72 @@ def decode_buddy (buddy,msg):
         if cod[0] == 'RED' or cod[0]=='R':
             try: do_color(buddy,cod[1],-1,-1)
             except: pass
-        if cod[0] == 'GREEN' or cod[0]=='G':
+        elif cod[0] == 'GREEN' or cod[0]=='G':
             try: do_color(buddy,-1,cod[1],-1)
             except: pass
-        if cod[0] == 'BLUE' or cod[0]=='B':
+        elif cod[0] == 'BLUE' or cod[0]=='B':
             try: do_color(buddy,-1,-1,cod[1])
             except: pass
-        if cod[0] == 'YELLOW':
+        elif cod[0] == 'YELLOW':
             try: do_color(buddy,cod[1],cod[1],-1)
             except: pass
-        if cod[0] == 'SAPHIRE':
+            continue
+        elif cod[0] == 'SAPHIRE':
             try: do_color(buddy,-1,cod[1],cod[1])
             except: pass
-        if cod[0] == 'VIOLET':
+        elif cod[0] == 'VIOLET':
             try: do_color(buddy,cod[1],-1,cod[1])
             except: pass
-        if cod[0] == 'HEART' or cod[0]=='H':
+        elif cod[0] == 'HEART' or cod[0]=='H':
             try:
                 param=int(cod[1])
             except:
                 param=0
             buddy.setHeart(param)
-        if cod[0] == 'C':
+        elif cod[0] == 'C':
             try: do_color(buddy,cod[1],cod[2],cod[3])
             except: pass
-        if cod[0] == 'MR':
+        elif cod[0] == 'MR':
             buddy.flick(buddy.RIGHT)
-        if cod[0] == 'ML':
+            continue
+        elif cod[0] == 'ML':
             buddy.flick(buddy.LEFT)
-        if cod[0] == 'SLEEP' or cod[0]=='S':
+        elif cod[0] == 'SLEEP' or cod[0]=='S':
             time.sleep(0.1)
-        if cod[0] == 'WU':
+        elif cod[0] == 'WU':
             buddy.wing(buddy.UP)
-        if cod[0]== 'WD':
+        elif cod[0]== 'WD':
             buddy.wing(buddy.DOWN)
-        if cod[0]== 'EXEC' or cod[0]=='X':
+        elif cod[0]== 'EXEC' or cod[0]=='X':
             buddy.pumpMessage()
-        if cod[0] == 'CLEAR' or cod[0]=='L':
+        elif cod[0] == 'CLEAR' or cod[0]=='L':
             buddy.resetMessage()
-        if cod[0]== 'RESET' or cod[0]=='Z':
+        elif cod[0]== 'RESET' or cod[0]=='Z':
             buddy.resetMessage()
             buddy.pumpMessage()
-        if cod[0] == 'MACRO_FLAP':
+        elif cod[0] == 'MACRO_FLAP':
             decode_buddy(buddy,macro_move_flap())
-        if cod[0] == 'MACRO_FLAP2':
+        elif cod[0] == 'MACRO_FLAP2':
             decode_buddy(buddy,macro_flap())
-        if cod[0] == 'MACRO_RED':
+        elif cod[0] == 'MACRO_RED':
             decode_buddy(buddy,macro_color(1,0,0))
-        if cod[0] == 'MACRO_GREEN':
+        elif cod[0] == 'MACRO_GREEN':
             decode_buddy(buddy,macro_color(0,1,0))
-        if cod[0] == 'MACRO_BLUE':
+        elif cod[0] == 'MACRO_BLUE':
             decode_buddy(buddy,macro_color(0,0,1))
-        if cod[0] == 'MACRO_YELLOW':
+        elif cod[0] == 'MACRO_YELLOW':
             decode_buddy(buddy,macro_color(1,1,0))
-        if cod[0] == 'MACRO_VIOLET':
+        elif cod[0] == 'MACRO_VIOLET':
             decode_buddy(buddy,macro_color(1,0,1))
-        if cod[0] == 'MACRO_SAPHIRE':
+        elif cod[0] == 'MACRO_SAPHIRE':
             decode_buddy(buddy,macro_color(0,1,1))
-        if cod[0] == 'MACRO_LBLUE':
+        elif cod[0] == 'MACRO_LBLUE':
             decode_buddy(buddy,macro_color(1,1,1))
-        if cod[0] == 'MACRO_HEART':
+        elif cod[0] == 'MACRO_HEART':
             decode_buddy(buddy,macro_heart())
-        if cod[0] == 'MACRO_HEART2':
+        elif cod[0] == 'MACRO_HEART2':
             decode_buddy(buddy,macro_heart2())
-        if cod[0] == 'DEMO':
+        elif cod[0] == 'DEMO':
             decode_buddy(buddy,macro_demo())
 
 #######################################
@@ -319,30 +316,41 @@ def decode_buddy (buddy,msg):
 
 log = logging.getLogger('pybuddy')
 
-
-config = RawConfigParser({'port': 8888,
-                          'address': '127.0.0.1',
-                          'user': 'nobody',
+#Default config
+config = RawConfigParser(
+            { 'port': 8888,
+              'address': '127.0.0.1',
+              'user': 'nobody',
 			  'loglevel': 'info',
 			  'logfile': 'console',
-                          'usbproduct': 0002,
-                          })
+              'usbproduct': 0002,
+             }
+)
+
 config._sections = {'network':{}, 'system':{}}
 
-config_files = ["~/.pybuddy.cfg", "/etc/pybuddy/pybuddy.cfg", "/usr/local/etc/pybuddy.cfg"]
+config_files = [ "~/.pybuddy.cfg", 
+                 "/etc/pybuddy/pybuddy.cfg", 
+                 "/usr/local/etc/pybuddy.cfg"
+]
+
+#Parse config
 if len(sys.argv) > 1:
     config_files.append(sys.argv[1])
     
 config_read = config.read(config_files)
 
 if config.get("system", "logfile") != "console":
-    logging.basicConfig(filename=config.get("system", "logfile"),
+    logging.basicConfig(
+                        filename=config.get("system", "logfile"),
                         format='%(asctime)s %(levelname)-8s %(message)s',
-                        )
+    )
 else:
-    logging.basicConfig(stream=sys.stderr,
+    logging.basicConfig(
+                        stream=sys.stderr,
                         format='%(asctime)s %(levelname)-8s %(message)s',
-                        )
+    )
+
 
 if config.get("system", "loglevel") == "debug":
     log.setLevel(logging.DEBUG)
@@ -350,10 +358,10 @@ elif config.get("system", "loglevel") == "info":
     log.setLevel(logging.INFO)
 
 
-
 if config_read:
     log.info("Read config file: %s", config_read[0])
     
+#Initialize device
 log.info("Starting search...")
 try:
     buddy=BuddyDevice(0, int(config.get("system", "usbproduct")))
@@ -362,16 +370,19 @@ except NoBuddyException, e:
     sys.exit(1)
 
 
+#Daemonize
 log.info("Starting daemon...")
 if os.fork()==0:
     os.setsid()
 else:
     sys.exit(0)
 
+#Create server socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((config.get("network", "address"), int(config.get("network", "port"))))
 
+#Drop privileges
 try:
     uid = pwd.getpwnam(config.get("system", "user"))[2]
 except KeyError:
@@ -380,6 +391,7 @@ except KeyError:
 os.setuid(uid)
 
 
+#Main message loop
 while 1:
     try:
         message, address = s.recvfrom(8192)
