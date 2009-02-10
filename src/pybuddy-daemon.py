@@ -40,6 +40,9 @@ class BuddyDevice:
   DOWN = 1
 
   finalMess = 0xFF
+  battery = 0
+  product = 0
+
 
   def __init__(self, battery, buddy_product):
     try:
@@ -48,6 +51,8 @@ class BuddyDevice:
       self.dev.handle.reset()
       self.resetMessage()
       self.pumpMessage()
+      self.battery=battery
+      self.product=buddy_product
     except NoBuddyException, e:
       raise NoBuddyException()
       
@@ -109,8 +114,11 @@ class BuddyDevice:
      return self.getReverseBitValue(1)
 
   def send(self, inp):
-    self.dev.handle.controlMsg(0x21, 0x09, self.SETUP, 0x02, 0x01)
-    self.dev.handle.controlMsg(0x21, 0x09, self.MESS+(inp,), 0x02, 0x01)
+    try:
+        self.dev.handle.controlMsg(0x21, 0x09, self.SETUP, 0x02, 0x01)
+        self.dev.handle.controlMsg(0x21, 0x09, self.MESS+(inp,), 0x02, 0x01)
+    except usb.USBError:
+        self.__init__(self.battery,self.product)
 
 #####################
 # USB class
