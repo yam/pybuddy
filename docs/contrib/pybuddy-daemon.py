@@ -16,9 +16,8 @@ import pwd
 import logging
 from ConfigParser import RawConfigParser
 
-from pybuddy import *
-from macro import *
-from config import *
+from pybuddy.buddy import *
+from pybuddy.macro import *
 
 #######################################
 # MAIN program
